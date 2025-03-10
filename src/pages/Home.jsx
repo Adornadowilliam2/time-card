@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { timeIn, timeOut } from '../api/timelog';
 import { ToastContainer, toast } from 'react-toastify';
+import { Link, useNavigate } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function Admin() {
+export default function Home() {
   const [employeeId, setEmployeeId] = useState('');
   const [lastScanTime, setLastScanTime] = useState(null); // Store the last scan time
   const [scanCount, setScanCount] = useState(0); // Track if it's the first or second scan for time-in/out
+  const [isError, setIsError] = useState(false); // Track if there's an error
+  const navigate = useNavigate();
 
   // Handle RFID scan input (simulated via onChange for simplicity)
   const handleRfidScan = (e) => {
@@ -14,7 +17,6 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    // If employeeId is scanned, handle time-in or time-out
     if (employeeId) {
       if (scanCount === 0) {
         // First scan - Time In
@@ -25,7 +27,8 @@ export default function Admin() {
             setScanCount(1); // Move to the second scan stage
             setEmployeeId(''); // Clear the input field after successful time-in
           })
-          .catch(() => {
+          .catch((error) => {
+            setIsError(true); // Set error state to true
             toast.error('Error while clocking in. Please try again.');
           });
       } else if (scanCount === 1) {
@@ -42,7 +45,8 @@ export default function Admin() {
               setLastScanTime(null); // Reset last scan time
               setEmployeeId(''); // Clear the input field after successful time-out
             })
-            .catch(() => {
+            .catch((error) => {
+              setIsError(true); // Set error state to true
               toast.error('Error while clocking out. Please try again.');
             });
         } else {
@@ -68,6 +72,14 @@ export default function Admin() {
           style={styles.input}
         />
       </div>
+
+      {/* If there's an error, show the login link */}
+      {isError && (
+        <div style={styles.errorContainer}>
+          <p style={styles.errorMessage}>Something went wrong. Please log in again.</p>
+          <Link to="/login" style={styles.loginLink}>Go to Login</Link>
+        </div>
+      )}
 
       {/* React Toast Container */}
       <ToastContainer />
@@ -108,5 +120,19 @@ const styles = {
     outline: 'none',
     marginBottom: '15px',
     width: '100%',
+  },
+  errorContainer: {
+    textAlign: 'center',
+    marginTop: '20px',
+  },
+  errorMessage: {
+    color: 'red',
+    marginBottom: '10px',
+  },
+  loginLink: {
+    fontSize: '16px',
+    color: '#007bff',
+    textDecoration: 'none',
+    fontWeight: 'bold',
   },
 };
